@@ -169,12 +169,12 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
 
   const commentaire   = document.getElementById("commentaire").value.trim();
 
-  const fonctions     = document.getElementById("fonctions").value.trim();
-  const aspirations   = document.getElementById("aspirations").value.trim();
-  const formations    = document.getElementById("formations").value.trim();
-  const objectifs     = document.getElementById("objectifs").value.trim();
-  const remarques     = document.getElementById("remarques").value.trim();
-  const accidents     = document.getElementById("accidents").value.trim();
+const fonctions     = document.getElementById("fonctions")?.value?.trim() || "";
+const aspirations   = document.getElementById("aspirations")?.value?.trim() || "";
+const formations    = document.getElementById("formations")?.value?.trim() || "";
+const objectifs     = document.getElementById("objectifs")?.value?.trim() || "";
+const remarques     = document.getElementById("remarques")?.value?.trim() || "";
+const accidents     = document.getElementById("accidents")?.value?.trim() || "";
 
   const luEval        = document.getElementById("luEval").checked;
   const luEvalue      = document.getElementById("luEvalue").checked;
