@@ -155,29 +155,27 @@ function handleAutoComment(container, index) {
 document.getElementById("formEval").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const chantier      = (champChantier.value || "").trim();
-  const ouvrierId     = selectOuvrier.value;
-  const ouvrier       = OUVRIERS.find(x => (x.matricule ?? "").toString() === ouvrierId);
-  const nomComplet    = ouvrier ? `${(ouvrier.nom||"").toUpperCase()} ${(ouvrier.prenom||"").toUpperCase()} (Mat. ${(ouvrier.matricule||"")})` : "";
+const chantier      = (champChantier?.value || "").trim();
+const ouvrierId     = selectOuvrier?.value || "";
+const ouvrier       = OUVRIERS.find(x => (x.matricule ?? "").toString() === ouvrierId);
+const nomComplet    = ouvrier ? `${(ouvrier.nom || "").toUpperCase()} ${(ouvrier.prenom || "").toUpperCase()} (Mat. ${(ouvrier.matricule || "")})` : "";
 
-  const metier        = selectMetier.value;
-  const dateNaissance = inputNaissance.value;
-  const qualification = inputQualif.value.trim();
-  const dateEntree    = inputEntree.value;
-  const dateEval      = inputDateEval.value;
-  const initialEval   = inputInitial.value.trim();
+const metier        = selectMetier?.value || "";
+const dateNaissance = inputNaissance?.value || "";
+const qualification = (inputQualif?.value || "").trim();
+const dateEntree    = inputEntree?.value || "";
+const dateEval      = inputDateEval?.value || "";
+const initialEval   = (inputInitial?.value || "").trim();
 
-  const commentaire   = document.getElementById("commentaire").value.trim();
+const fonctions     = document.getElementById("fonctions")?.value?.trim() || "";
+const aspirations   = document.getElementById("aspirations")?.value?.trim() || "";
+const formations    = document.getElementById("formations")?.value?.trim() || "";
+const objectifs     = document.getElementById("objectifs")?.value?.trim() || "";
+const remarques     = document.getElementById("remarques")?.value?.trim() || "";
+const accidents     = document.getElementById("accidents")?.value?.trim() || "";
 
-  const fonctions     = document.getElementById("fonctions").value.trim();
-  const aspirations   = document.getElementById("aspirations").value.trim();
-  const formations    = document.getElementById("formations").value.trim();
-  const objectifs     = document.getElementById("objectifs").value.trim();
-  const remarques     = document.getElementById("remarques").value.trim();
-  const accidents     = document.getElementById("accidents").value.trim();
-
-  const luEval        = document.getElementById("luEval").checked;
-  const luEvalue      = document.getElementById("luEvalue").checked;
+const luEval        = document.getElementById("luEval")?.checked || false;
+const luEvalue      = document.getElementById("luEvalue")?.checked || false;
 
   // Champs vraiment obligatoires
   if (!chantier || !ouvrierId || !metier || !dateEval || !initialEval || !luEval || !luEvalue) {
