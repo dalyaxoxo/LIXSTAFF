@@ -176,8 +176,8 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
   const remarques     = document.getElementById("remarques").value.trim();
   const accidents     = document.getElementById("accidents").value.trim();
 
-  const luEval        = document.getElementById("luEval").checked;
-  const luEvalue      = document.getElementById("luEvalue").checked;
+const luEval = document.getElementById("luEval")?.checked || false;
+const luEvalue = document.getElementById("luEvalue")?.checked || false;
 
   // Champs vraiment obligatoires
   if (!chantier || !ouvrierId || !metier || !dateEval || !initialEval || !luEval || !luEvalue) {
