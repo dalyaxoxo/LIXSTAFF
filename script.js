@@ -167,7 +167,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
   const dateEval      = inputDateEval.value;
   const initialEval   = inputInitial.value.trim();
 
-  const commentaire   = document.getElementById("commentaire").value.trim();
+  const commentaire = "";
 
   const fonctions     = document.getElementById("fonctions").value.trim();
   const aspirations   = document.getElementById("aspirations").value.trim();
