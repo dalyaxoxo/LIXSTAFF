@@ -64,7 +64,7 @@ function remplirSelectOuvriers(list) {
     const opt = document.createElement("option");
     const mat = (o.matricule ?? "").toString().trim();
     opt.value = mat;
-    opt.textContent = `${(o.nom || "").toUpperCase()} ${(o.prenom || "").toUpperCase()} (Mat. ${mat})`;
+    opt.textContent = ${(o.nom || "").toUpperCase()} ${(o.prenom || "").toUpperCase()} (Mat. ${mat});
     selectOuvrier.appendChild(opt);
   });
 }
@@ -78,7 +78,7 @@ selectOuvrier.addEventListener("change", () => {
   inputEntree.value    = normalizeDate(o.entree);
   inputNaissance.value = normalizeDate(o.naissance); // <-- date de naissance
 
-  if (o.fonction && selectMetier.querySelector(`option[value="${o.fonction}"]`)) {
+  if (o.fonction && selectMetier.querySelector(option[value="${o.fonction}"])) {
     selectMetier.value = o.fonction;
     selectMetier.dispatchEvent(new Event("change"));
   }
@@ -158,7 +158,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
   const chantier      = (champChantier.value || "").trim();
   const ouvrierId     = selectOuvrier.value;
   const ouvrier       = OUVRIERS.find(x => (x.matricule ?? "").toString() === ouvrierId);
-  const nomComplet    = ouvrier ? `${(ouvrier.nom||"").toUpperCase()} ${(ouvrier.prenom||"").toUpperCase()} (Mat. ${(ouvrier.matricule||"")})` : "";
+  const nomComplet    = ouvrier ? ${(ouvrier.nom||"").toUpperCase()} ${(ouvrier.prenom||"").toUpperCase()} (Mat. ${(ouvrier.matricule||"")}) : "";
 
   const metier        = selectMetier.value;
   const dateNaissance = inputNaissance.value;
@@ -243,7 +243,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
 
   try {
     // ====== PDF ======
-    const fileName = `${sanitizeFileName(nomComplet || "ouvrier")}_${sanitizeFileName(metier)}_evaluation.pdf`;
+    const fileName = ${sanitizeFileName(nomComplet || "ouvrier")}_${sanitizeFileName(metier)}_evaluation.pdf;
     const doc = buildPdfWithJsPDF(result);
     const base64 = pdfBase64FromDoc(doc);
 
@@ -257,7 +257,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
     if (FLOW_API_KEY) headers["x-api-key"] = FLOW_API_KEY;
 
     const payload = {
-      subject:  `Évaluation - ${nomComplet} (${metier}) – ${dateEval}`,
+      subject:  Évaluation - ${nomComplet} (${metier}) – ${dateEval},
       filename: fileName,
       pdfBase64: base64,
       data: {
@@ -292,7 +292,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
     if (!resp.ok) {
       const text = await resp.text().catch(() => "");
       console.error("Flow error:", resp.status, text);
-      alert(`❌ Échec envoi au Flow (HTTP ${resp.status}). Détails:\n${text.slice(0,800)}`);
+      alert(❌ Échec envoi au Flow (HTTP ${resp.status}). Détails:\n${text.slice(0,800)});
       return;
     }
 
@@ -305,33 +305,33 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
 
 /* ================== APERÇU ÉCRAN ================== */
 function afficherResultat(d) {
-  let html = `<h2>Évaluation enregistrée</h2>`;
-  html += `<strong>N° de chantier + nom :</strong> ${escapeHtml(d.chantier)}<br>`;
-  html += `<strong>Ouvrier :</strong> ${escapeHtml(d.ouvrier)}<br>`;
-  html += `<strong>Métier :</strong> ${escapeHtml(d.metier)}<br>`;
-  if (d.date_naissance) html += `<strong>Date de naissance :</strong> ${escapeHtml(d.date_naissance)}<br>`;
-  if (d.qualification)  html += `<strong>Qualification :</strong> ${escapeHtml(d.qualification)}<br>`;
-  if (d.date_entree)    html += `<strong>Date d’entrée :</strong> ${escapeHtml(d.date_entree)}<br>`;
-  html += `<strong>Date de l’évaluation :</strong> ${escapeHtml(d.date_eval)}<br>`;
-  html += `<strong>Initial de l’évaluateur :</strong> ${escapeHtml(d.initial_evaluateur)}<br><br>`;
+  let html = <h2>Évaluation enregistrée</h2>;
+  html += <strong>N° de chantier + nom :</strong> ${escapeHtml(d.chantier)}<br>;
+  html += <strong>Ouvrier :</strong> ${escapeHtml(d.ouvrier)}<br>;
+  html += <strong>Métier :</strong> ${escapeHtml(d.metier)}<br>;
+  if (d.date_naissance) html += <strong>Date de naissance :</strong> ${escapeHtml(d.date_naissance)}<br>;
+  if (d.qualification)  html += <strong>Qualification :</strong> ${escapeHtml(d.qualification)}<br>;
+  if (d.date_entree)    html += <strong>Date d’entrée :</strong> ${escapeHtml(d.date_entree)}<br>;
+  html += <strong>Date de l’évaluation :</strong> ${escapeHtml(d.date_eval)}<br>;
+  html += <strong>Initial de l’évaluateur :</strong> ${escapeHtml(d.initial_evaluateur)}<br><br>;
 
-  html += `<strong>Critères :</strong><br>`;
+  html += <strong>Critères :</strong><br>;
   d.evaluation.forEach(row => {
-    html += `• ${escapeHtml(row.critere)} : <strong>${escapeHtml(row.emoji)} ${escapeHtml(row.note)}</strong>`;
-    if (row.commentaire) html += `<br><em>Commentaire :</em> ${escapeHtml(row.commentaire)}`;
-    html += `<br>`;
+    html += • ${escapeHtml(row.critere)} : <strong>${escapeHtml(row.emoji)} ${escapeHtml(row.note)}</strong>;
+    if (row.commentaire) html += <br><em>Commentaire :</em> ${escapeHtml(row.commentaire)};
+    html += <br>;
   });
 
-  if (d.commentaire) html += `<br><strong>Commentaire général :</strong><br>${nl2br(escapeHtml(d.commentaire))}<br>`;
-  html += `<br><strong>Compléments :</strong><br>`;
-  if (d.fonctions)  html += `<strong>Fonctions exercées sur le chantier :</strong> ${escapeHtml(d.fonctions)}<br>`;
-  if (d.aspirations)html += `<strong>Aspirations :</strong> ${escapeHtml(d.aspirations)}<br>`;
-  if (d.formations) html += `<strong>Formations :</strong> ${escapeHtml(d.formations)}<br>`;
-  if (d.objectifs)  html += `<strong>Objectifs :</strong> ${escapeHtml(d.objectifs)}<br>`;
-  if (d.remarques)  html += `<strong>Remarques :</strong> ${escapeHtml(d.remarques)}<br>`;
-  if (d.accidents)  html += `<strong>Accidents :</strong> ${escapeHtml(d.accidents)}<br>`;
-  html += `<strong>Évaluateur lu et approuvé :</strong> ${escapeHtml(d.approbateur)}<br>`;
-  html += `<strong>Évalué lu et approuvé :</strong> ${escapeHtml(d.evalue)}<br>`;
+  if (d.commentaire) html += <br><strong>Commentaire général :</strong><br>${nl2br(escapeHtml(d.commentaire))}<br>;
+  html += <br><strong>Compléments :</strong><br>;
+  if (d.fonctions)  html += <strong>Fonctions exercées sur le chantier :</strong> ${escapeHtml(d.fonctions)}<br>;
+  if (d.aspirations)html += <strong>Aspirations :</strong> ${escapeHtml(d.aspirations)}<br>;
+  if (d.formations) html += <strong>Formations :</strong> ${escapeHtml(d.formations)}<br>;
+  if (d.objectifs)  html += <strong>Objectifs :</strong> ${escapeHtml(d.objectifs)}<br>;
+  if (d.remarques)  html += <strong>Remarques :</strong> ${escapeHtml(d.remarques)}<br>;
+  if (d.accidents)  html += <strong>Accidents :</strong> ${escapeHtml(d.accidents)}<br>;
+  html += <strong>Évaluateur lu et approuvé :</strong> ${escapeHtml(d.approbateur)}<br>;
+  html += <strong>Évalué lu et approuvé :</strong> ${escapeHtml(d.evalue)}<br>;
 
   resultatDiv.innerHTML = html;
   resultatDiv.style.display = "block";
@@ -391,12 +391,12 @@ function buildPdfWithJsPDF(d) {
 
   section("Complément d’évaluation");
   y = multiText(
-    `• Fonctions exercées sur le chantier : ${d.fonctions || ""}\n` +
-    `• Aspirations : ${d.aspirations || ""}\n` +
-    `• Formations : ${d.formations || ""}\n` +
-    `• Objectifs : ${d.objectifs || ""}\n` +
-    `• Remarques : ${d.remarques || ""}\n` +
-    `• Accidents : ${d.accidents || ""}`,
+    • Fonctions exercées sur le chantier : ${d.fonctions || ""}\n +
+    • Aspirations : ${d.aspirations || ""}\n +
+    • Formations : ${d.formations || ""}\n +
+    • Objectifs : ${d.objectifs || ""}\n +
+    • Remarques : ${d.remarques || ""}\n +
+    • Accidents : ${d.accidents || ""},
     margin, y, pageW - margin*2
   );
 
@@ -457,13 +457,13 @@ function base64FromArrayBuffer(buffer) {
 /* ================== HTML POUR EMAIL (optionnel) ================== */
 function buildEmailHtml(d){
   const rows = d.evaluation.map(r =>
-    `<tr>
+    <tr>
       <td style="padding:4px 8px;border-bottom:1px solid #eee">${escapeHtml(r.critere)}</td>
       <td style="padding:4px 8px;border-bottom:1px solid #eee"><b>${escapeHtml(r.note)}</b></td>
       <td style="padding:4px 8px;border-bottom:1px solid #eee">${escapeHtml(r.commentaire || "")}</td>
-    </tr>`
+    </tr>
   ).join("");
-  return `
+  return 
   <div style="font-family:Arial,sans-serif;line-height:1.45;color:#111">
     <h2 style="margin:0 0 12px">Évaluation du personnel</h2>
     <p>
@@ -484,7 +484,7 @@ function buildEmailHtml(d){
       </thead>
       <tbody>${rows}</tbody>
     </table>
-    ${d.commentaire ? `<h3 style="margin:16px 0 8px">Commentaire général</h3><p>${nl2br(escapeHtml(d.commentaire))}</p>` : ""}
+    ${d.commentaire ? <h3 style="margin:16px 0 8px">Commentaire général</h3><p>${nl2br(escapeHtml(d.commentaire))}</p> : ""}
     <h3 style="margin:16px 0 8px">Complément</h3>
     <ul>
       <li><b>Fonctions exercées sur le chantier :</b> ${escapeHtml(d.fonctions || "")}</li>
@@ -497,7 +497,7 @@ function buildEmailHtml(d){
       <li><b>Évalué lu et approuvé :</b> ${escapeHtml(d.evalue)}</li>
     </ul>
     <hr><p>📎 Le PDF complet est joint.</p>
-  </div>`;
+  </div>;
 }
 
 /* ================== HELPERS ================== */
@@ -510,7 +510,7 @@ function normalizeDate(v){
   const s = String(v);
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   const m = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
-  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  if (m) return ${m[3]}-${m[2]}-${m[1]};
   return s;
 }
 
