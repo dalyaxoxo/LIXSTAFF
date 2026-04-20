@@ -1,7 +1,7 @@
 /* ================== CONFIG POWER AUTOMATE ================== */
 const FLOW_URL = "https://default67f421526f984c3d8a955ed93c38ce.af.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/71d4d5c8f94f41848ddfc7bfb336ae8b/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=nxFtQ01laXfNBx0t3SB-DLvAnvQ3zeBpOG6OsKBgovU";
-const FLOW_API_KEY = ""; // si ton Flow est protégé par une clé, mets-la ici
 
+const API_URL = "/api/send-eval";
 /* ================== UI / DONNÉES ================== */
 const smileys = ["😊", "🙂", "😐", "🙁", "😡", "❌"];
 const labels  = ["Très bon", "Bon", "Moyen", "Insuffisant", "Mauvais", "Non applicable"];
@@ -155,29 +155,40 @@ function handleAutoComment(container, index) {
 document.getElementById("formEval").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const chantier      = (champChantier.value || "").trim();
-  const ouvrierId     = selectOuvrier.value;
+  const getValue = (id) => {
+    const el = document.getElementById(id);
+    return el ? (el.value || "").trim() : "";
+  };
+
+  const getChecked = (id) => {
+    const el = document.getElementById(id);
+    return el ? !!el.checked : false;
+  };
+
+  const chantier      = (champChantier?.value || "").trim();
+  const ouvrierId     = selectOuvrier?.value || "";
   const ouvrier       = OUVRIERS.find(x => (x.matricule ?? "").toString() === ouvrierId);
-  const nomComplet    = ouvrier ? `${(ouvrier.nom||"").toUpperCase()} ${(ouvrier.prenom||"").toUpperCase()} (Mat. ${(ouvrier.matricule||"")})` : "";
+  const nomComplet    = ouvrier
+    ? `${(ouvrier.nom || "").toUpperCase()} ${(ouvrier.prenom || "").toUpperCase()} (Mat. ${(ouvrier.matricule || "")})`
+    : "";
 
-  const metier        = selectMetier.value;
-  const dateNaissance = inputNaissance.value;
-  const qualification = inputQualif.value.trim();
-  const dateEntree    = inputEntree.value;
-  const dateEval      = inputDateEval.value;
-  const initialEval   = inputInitial.value.trim();
+  const metier        = selectMetier?.value || "";
+  const dateNaissance = inputNaissance?.value || "";
+  const qualification = (inputQualif?.value || "").trim();
+  const dateEntree    = inputEntree?.value || "";
+  const dateEval      = inputDateEval?.value || "";
+  const initialEval   = (inputInitial?.value || "").trim();
 
-  const commentaire   = document.getElementById("commentaire").value.trim();
+  const commentaire   = getValue("commentaire");
+  const fonctions     = getValue("fonctions");
+  const aspirations   = getValue("aspirations");
+  const formations    = getValue("formations");
+  const objectifs     = getValue("objectifs");
+  const remarques     = getValue("remarques");
+  const accidents     = getValue("accidents");
 
-  const fonctions     = document.getElementById("fonctions").value.trim();
-  const aspirations   = document.getElementById("aspirations").value.trim();
-  const formations    = document.getElementById("formations").value.trim();
-  const objectifs     = document.getElementById("objectifs").value.trim();
-  const remarques     = document.getElementById("remarques").value.trim();
-  const accidents     = document.getElementById("accidents").value.trim();
-
-  const luEval        = document.getElementById("luEval").checked;
-  const luEvalue      = document.getElementById("luEvalue").checked;
+  const luEval        = getChecked("luEval");
+  const luEvalue      = getChecked("luEvalue");
 
   // Champs vraiment obligatoires
   if (!chantier || !ouvrierId || !metier || !dateEval || !initialEval || !luEval || !luEvalue) {
@@ -257,35 +268,38 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
     if (FLOW_API_KEY) headers["x-api-key"] = FLOW_API_KEY;
 
     const payload = {
-      subject:  `Évaluation - ${nomComplet} (${metier}) – ${dateEval}`,
+      subject: `Évaluation - ${nomComplet} (${metier}) – ${dateEval}`,
       filename: fileName,
       pdfBase64: base64,
       data: {
-        // Nouveaux champs
         chantier,
         ouvrier: nomComplet,
+        nom: nomComplet,
         metier,
+        date_naissance: dateNaissance,
+        qualification,
+        date_entree: dateEntree,
         date_eval: dateEval,
+        dateEval: dateEval,
         initial_evaluateur: initialEval,
+        auteur: initialEval,
         commentaire,
-        fonctions, aspirations, formations, objectifs, remarques, accidents,
+        fonctions,
+        aspirations,
+        formations,
+        objectifs,
+        remarques,
+        accidents,
         approbateur: result.approbateur,
         evalue: result.evalue,
         evaluation: result.evaluation,
-
-        // Champs legacy pour Flow existant
-        nom: nomComplet,
-        dateEval: dateEval,
-        auteur: initialEval,
-
-        // Html optionnel
         emailBodyHtml: buildEmailHtml(result)
       }
     };
 
-    const resp = await fetch(FLOW_URL, {
+    const resp = await fetch("/api/send-eval", {
       method: "POST",
-      headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
