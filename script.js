@@ -155,40 +155,50 @@ function handleAutoComment(container, index) {
 document.getElementById("formEval").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const chantier      = (champChantier.value || "").trim();
-  const ouvrierId     = selectOuvrier.value;
+  const getValue = (id) => {
+    const el = document.getElementById(id);
+    return el ? (el.value || "").trim() : "";
+  };
+
+  const getChecked = (id) => {
+    const el = document.getElementById(id);
+    return el ? !!el.checked : false;
+  };
+
+  const chantier      = (champChantier?.value || "").trim();
+  const ouvrierId     = selectOuvrier?.value || "";
   const ouvrier       = OUVRIERS.find(x => (x.matricule ?? "").toString() === ouvrierId);
-  const nomComplet    = ouvrier ? `${(ouvrier.nom||"").toUpperCase()} ${(ouvrier.prenom||"").toUpperCase()} (Mat. ${(ouvrier.matricule||"")})` : "";
+  const nomComplet    = ouvrier
+    ? `${(ouvrier.nom || "").toUpperCase()} ${(ouvrier.prenom || "").toUpperCase()} (Mat. ${(ouvrier.matricule || "")})`
+    : "";
 
-  const metier        = selectMetier.value;
-  const dateNaissance = inputNaissance.value;
-  const qualification = inputQualif.value.trim();
-  const dateEntree    = inputEntree.value;
-  const dateEval      = inputDateEval.value;
-  const initialEval   = inputInitial.value.trim();
+  const metier        = selectMetier?.value || "";
+  const dateNaissance = inputNaissance?.value || "";
+  const qualification = (inputQualif?.value || "").trim();
+  const dateEntree    = inputEntree?.value || "";
+  const dateEval      = inputDateEval?.value || "";
+  const initialEval   = (inputInitial?.value || "").trim();
 
-  const commentaire   = document.getElementById("commentaire").value.trim();
+  const commentaire   = getValue("commentaire");
+  const fonctions     = getValue("fonctions");
+  const aspirations   = getValue("aspirations");
+  const formations    = getValue("formations");
+  const objectifs     = getValue("objectifs");
+  const remarques     = getValue("remarques");
+  const accidents     = getValue("accidents");
 
-  const fonctions     = document.getElementById("fonctions").value.trim();
-  const aspirations   = document.getElementById("aspirations").value.trim();
-  const formations    = document.getElementById("formations").value.trim();
-  const objectifs     = document.getElementById("objectifs").value.trim();
-  const remarques     = document.getElementById("remarques").value.trim();
-  const accidents     = document.getElementById("accidents").value.trim();
+  const luEval        = getChecked("luEval");
+  const luEvalue      = getChecked("luEvalue");
 
-  const luEval        = document.getElementById("luEval").checked;
-  const luEvalue      = document.getElementById("luEvalue").checked;
-
-  // Champs vraiment obligatoires
   if (!chantier || !ouvrierId || !metier || !dateEval || !initialEval || !luEval || !luEvalue) {
     alert("❌ Merci de remplir : N° de chantier, Ouvrier, Métier, Date d’évaluation, Initial de l’évaluateur et cocher les validations.");
     return;
   }
 
-  // Vérifier les questions + commentaires requis pour notes basses
   let questionsCompletes = true;
   let commentairesOK = true;
   const evaluations = [];
+
   document.querySelectorAll(".question").forEach(div => {
     const critere  = div.dataset.question;
     const selected = div.querySelector(".selected");
@@ -196,6 +206,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
 
     const idx = selected ? Number(selected.dataset.index) : -1;
     const autoComment = div.querySelector(".auto-comment");
+
     if ((idx === 3 || idx === 4) && (!autoComment || autoComment.value.trim() === "")) {
       commentairesOK = false;
       if (autoComment) autoComment.reportValidity?.();
@@ -203,8 +214,8 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
 
     evaluations.push({
       critere,
-      emoji: selected ? selected.dataset.icon  : "",
-      note:  selected ? selected.dataset.value : "Non noté",
+      emoji: selected ? selected.dataset.icon : "",
+      note: selected ? selected.dataset.value : "Non noté",
       commentaire: autoComment ? autoComment.value.trim() : ""
     });
   });
@@ -213,11 +224,94 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
     alert("❌ Veuillez répondre à toutes les questions d'évaluation.");
     return;
   }
+
   if (!commentairesOK) {
     alert("❌ Pour toute note Insuffisant/Mauvais, un commentaire est obligatoire.");
     return;
   }
 
+  const result = {
+    chantier,
+    ouvrier: nomComplet,
+    metier,
+    date_naissance: dateNaissance,
+    qualification,
+    date_entree: dateEntree,
+    date_eval: dateEval,
+    initial_evaluateur: initialEval,
+    commentaire,
+    fonctions,
+    aspirations,
+    formations,
+    objectifs,
+    remarques,
+    accidents,
+    approbateur: luEval ? "Oui" : "Non",
+    evalue: luEvalue ? "Oui" : "Non",
+    evaluation: evaluations
+  };
+
+  afficherResultat(result);
+
+  try {
+    const fileName = `${sanitizeFileName(nomComplet || "ouvrier")}_${sanitizeFileName(metier)}_evaluation.pdf`;
+    const doc = buildPdfWithJsPDF(result);
+    const base64 = pdfBase64FromDoc(doc);
+
+    if (btnDownload) {
+      btnDownload.style.display = "inline-block";
+      btnDownload.onclick = () => { doc.save(fileName); };
+    }
+
+    const payload = {
+      subject: `Évaluation - ${nomComplet} (${metier}) – ${dateEval}`,
+      filename: fileName,
+      pdfBase64: base64,
+      data: {
+        chantier,
+        ouvrier: nomComplet,
+        nom: nomComplet,
+        metier,
+        date_naissance: dateNaissance,
+        qualification,
+        date_entree: dateEntree,
+        date_eval: dateEval,
+        dateEval: dateEval,
+        initial_evaluateur: initialEval,
+        auteur: initialEval,
+        commentaire,
+        fonctions,
+        aspirations,
+        formations,
+        objectifs,
+        remarques,
+        accidents,
+        approbateur: result.approbateur,
+        evalue: result.evalue,
+        evaluation: result.evaluation,
+        emailBodyHtml: buildEmailHtml(result)
+      }
+    };
+
+    const resp = await fetch("/api/send-eval", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.error("API error:", resp.status, text);
+      alert(`❌ Échec envoi (HTTP ${resp.status}). Détails:\n${text.slice(0, 800)}`);
+      return;
+    }
+
+    alert("✅ Évaluation envoyée par e-mail avec le PDF en pièce jointe !");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Impossible de générer ou d’envoyer le PDF.");
+  }
+});
   const result = {
     chantier,
     ouvrier: nomComplet,
