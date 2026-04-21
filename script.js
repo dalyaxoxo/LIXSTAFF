@@ -1,4 +1,7 @@
 /* ================== CONFIG POWER AUTOMATE ================== */
+
+console.log("SCRIPT NOUVEAU CHARGE - VERSION TEST 999");
+alert("SCRIPT NOUVEAU CHARGE");
 const FLOW_URL = "https://default67f421526f984c3d8a955ed93c38ce.af.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/71d4d5c8f94f41848ddfc7bfb336ae8b/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=nxFtQ01laXfNBx0t3SB-DLvAnvQ3zeBpOG6OsKBgovU";
 const FLOW_API_KEY = ""; // si ton Flow est protégé par une clé, mets-la ici
 
