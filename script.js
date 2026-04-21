@@ -23,6 +23,17 @@ const inputEntree     = document.getElementById("dateEntree");
 const inputDateEval   = document.getElementById("dateEvaluation");
 const inputInitial    = document.getElementById("initialEval");
 
+/* ================== HELPERS DOM ================== */
+function getValue(id) {
+  const el = document.getElementById(id);
+  return el ? (el.value || "").trim() : "";
+}
+
+function getChecked(id) {
+  const el = document.getElementById(id);
+  return el ? !!el.checked : false;
+}
+
 /* ================== CHARGER LES MÉTIERS ================== */
 Object.keys(METIER_QUESTIONS).forEach(metier => {
   const option = document.createElement("option");
@@ -50,7 +61,7 @@ async function chargerOuvriers() {
   } catch (e) {
     console.error("Chargement de /ouvriers.json échoué:", e);
   }
-  // Fallback minimal si rien n'est dispo
+
   OUVRIERS = [
     { matricule: "TEST1", nom: "DUPONT", prenom: "JEAN", naissance:"", entree: "2020-01-01", qualif: "4", fonction: "Maçons" },
     { matricule: "TEST2", nom: "MARTIN", prenom: "PAUL", naissance:"", entree: "2019-03-12", qualif: "7", fonction: "Coffreurs" }
@@ -74,9 +85,10 @@ window.remplirSelectOuvriers = remplirSelectOuvriers;
 selectOuvrier.addEventListener("change", () => {
   const o = OUVRIERS.find(x => (x.matricule ?? "").toString() === selectOuvrier.value);
   if (!o) return;
-  inputQualif.value    = (o.qualif ?? "").toString();
-  inputEntree.value    = normalizeDate(o.entree);
-  inputNaissance.value = normalizeDate(o.naissance); // <-- date de naissance
+
+  if (inputQualif)     inputQualif.value    = (o.qualif ?? "").toString();
+  if (inputEntree)     inputEntree.value    = normalizeDate(o.entree);
+  if (inputNaissance)  inputNaissance.value = normalizeDate(o.naissance);
 
   if (o.fonction && selectMetier.querySelector(`option[value="${o.fonction}"]`)) {
     selectMetier.value = o.fonction;
@@ -121,13 +133,13 @@ selectMetier.addEventListener("change", () => {
       questionsList.appendChild(qDiv);
     });
 
-    questionsContainer.style.display = "block";
-    commentaireSection.style.display  = "block";
-    ficheComplementaire.style.display = "block";
+    if (questionsContainer)  questionsContainer.style.display = "block";
+    if (commentaireSection)  commentaireSection.style.display = "block";
+    if (ficheComplementaire) ficheComplementaire.style.display = "block";
   } else {
-    questionsContainer.style.display = "none";
-    commentaireSection.style.display  = "none";
-    ficheComplementaire.style.display = "none";
+    if (questionsContainer)  questionsContainer.style.display = "none";
+    if (commentaireSection)  commentaireSection.style.display = "none";
+    if (ficheComplementaire) ficheComplementaire.style.display = "none";
   }
 });
 
@@ -155,33 +167,33 @@ function handleAutoComment(container, index) {
 document.getElementById("formEval").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const chantier      = (champChantier.value || "").trim();
-  const ouvrierId     = selectOuvrier.value;
+  const chantier      = (champChantier?.value || "").trim();
+  const ouvrierId     = selectOuvrier?.value || "";
   const ouvrier       = OUVRIERS.find(x => (x.matricule ?? "").toString() === ouvrierId);
-  const nomComplet    = ouvrier ? `${(ouvrier.nom||"").toUpperCase()} ${(ouvrier.prenom||"").toUpperCase()} (Mat. ${(ouvrier.matricule||"")})` : "";
+  const nomComplet    = ouvrier ? `${(ouvrier.nom || "").toUpperCase()} ${(ouvrier.prenom || "").toUpperCase()} (Mat. ${(ouvrier.matricule || "")})` : "";
 
-  const metier        = selectMetier.value;
-  const dateNaissance = inputNaissance.value;
-  const qualification = inputQualif.value.trim();
-  const dateEntree    = inputEntree.value;
-  const dateEval      = inputDateEval.value;
-  const initialEval   = inputInitial.value.trim();
+  const metier        = selectMetier?.value || "";
+  const dateNaissance = inputNaissance?.value || "";
+  const qualification = (inputQualif?.value || "").trim();
+  const dateEntree    = inputEntree?.value || "";
+  const dateEval      = inputDateEval?.value || "";
+  const initialEval   = (inputInitial?.value || "").trim();
 
-  const commentaire   = document.getElementById("commentaire").value.trim();
+  const commentaire   = getValue("commentaire");
 
-  const fonctions     = document.getElementById("fonctions").value.trim();
-  const aspirations   = document.getElementById("aspirations").value.trim();
-  const formations    = document.getElementById("formations").value.trim();
-  const objectifs     = document.getElementById("objectifs").value.trim();
-  const remarques     = document.getElementById("remarques").value.trim();
-  const accidents     = document.getElementById("accidents").value.trim();
+  const fonctions     = getValue("fonctions");
+  const aspirations   = getValue("aspirations");
+  const formations    = getValue("formations");
+  const objectifs     = getValue("objectifs");
+  const remarques     = getValue("remarques");
+  const accidents     = getValue("accidents");
 
-  const luEval        = document.getElementById("luEval").checked;
-  const luEvalue      = document.getElementById("luEvalue").checked;
+  const luEval        = getChecked("luEval");
+  const luEvalue      = getChecked("luEvalue");
 
-  // Champs vraiment obligatoires
-  if (!chantier || !ouvrierId || !metier || !dateEval || !initialEval || !luEval || !luEvalue) {
-    alert("❌ Merci de remplir : N° de chantier, Ouvrier, Métier, Date d’évaluation, Initial de l’évaluateur et cocher les validations.");
+  // Champs obligatoires communs
+  if (!chantier || !ouvrierId || !metier || !dateEval || !initialEval || !luEval) {
+    alert("❌ Merci de remplir : N° de chantier, Ouvrier, Métier, Date d’évaluation, Initial de l’évaluateur et cocher la validation de l’évaluateur.");
     return;
   }
 
@@ -189,6 +201,7 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
   let questionsCompletes = true;
   let commentairesOK = true;
   const evaluations = [];
+
   document.querySelectorAll(".question").forEach(div => {
     const critere  = div.dataset.question;
     const selected = div.querySelector(".selected");
@@ -235,14 +248,13 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
     remarques,
     accidents,
     approbateur: luEval ? "Oui" : "Non",
-    evalue:      luEvalue ? "Oui" : "Non",
-    evaluation:  evaluations
+    evalue: luEvalue ? "Oui" : "Non",
+    evaluation: evaluations
   };
 
   afficherResultat(result);
 
   try {
-    // ====== PDF ======
     const fileName = `${sanitizeFileName(nomComplet || "ouvrier")}_${sanitizeFileName(metier)}_evaluation.pdf`;
     const doc = buildPdfWithJsPDF(result);
     const base64 = pdfBase64FromDoc(doc);
@@ -252,23 +264,29 @@ document.getElementById("formEval").addEventListener("submit", async (e) => {
       btnDownload.onclick = () => { doc.save(fileName); };
     }
 
-    // ====== ENVOI AU FLOW (avec compat champs anciens) ======
     const headers = { "Content-Type": "application/json" };
     if (FLOW_API_KEY) headers["x-api-key"] = FLOW_API_KEY;
 
     const payload = {
-      subject:  `Évaluation - ${nomComplet} (${metier}) – ${dateEval}`,
+      subject: `Évaluation - ${nomComplet} (${metier}) – ${dateEval}`,
       filename: fileName,
       pdfBase64: base64,
       data: {
-        // Nouveaux champs
         chantier,
         ouvrier: nomComplet,
         metier,
+        date_naissance: dateNaissance,
+        qualification,
+        date_entree: dateEntree,
         date_eval: dateEval,
         initial_evaluateur: initialEval,
         commentaire,
-        fonctions, aspirations, formations, objectifs, remarques, accidents,
+        fonctions,
+        aspirations,
+        formations,
+        objectifs,
+        remarques,
+        accidents,
         approbateur: result.approbateur,
         evalue: result.evalue,
         evaluation: result.evaluation,
@@ -324,12 +342,12 @@ function afficherResultat(d) {
 
   if (d.commentaire) html += `<br><strong>Commentaire général :</strong><br>${nl2br(escapeHtml(d.commentaire))}<br>`;
   html += `<br><strong>Compléments :</strong><br>`;
-  if (d.fonctions)  html += `<strong>Fonctions exercées sur le chantier :</strong> ${escapeHtml(d.fonctions)}<br>`;
-  if (d.aspirations)html += `<strong>Aspirations :</strong> ${escapeHtml(d.aspirations)}<br>`;
-  if (d.formations) html += `<strong>Formations :</strong> ${escapeHtml(d.formations)}<br>`;
-  if (d.objectifs)  html += `<strong>Objectifs :</strong> ${escapeHtml(d.objectifs)}<br>`;
-  if (d.remarques)  html += `<strong>Remarques :</strong> ${escapeHtml(d.remarques)}<br>`;
-  if (d.accidents)  html += `<strong>Accidents :</strong> ${escapeHtml(d.accidents)}<br>`;
+  if (d.fonctions)   html += `<strong>Fonctions exercées sur le chantier :</strong> ${escapeHtml(d.fonctions)}<br>`;
+  if (d.aspirations) html += `<strong>Aspirations :</strong> ${escapeHtml(d.aspirations)}<br>`;
+  if (d.formations)  html += `<strong>Formations :</strong> ${escapeHtml(d.formations)}<br>`;
+  if (d.objectifs)   html += `<strong>Objectifs :</strong> ${escapeHtml(d.objectifs)}<br>`;
+  if (d.remarques)   html += `<strong>Remarques :</strong> ${escapeHtml(d.remarques)}<br>`;
+  if (d.accidents)   html += `<strong>Accidents :</strong> ${escapeHtml(d.accidents)}<br>`;
   html += `<strong>Évaluateur lu et approuvé :</strong> ${escapeHtml(d.approbateur)}<br>`;
   html += `<strong>Évalué lu et approuvé :</strong> ${escapeHtml(d.evalue)}<br>`;
 
@@ -516,10 +534,8 @@ function normalizeDate(v){
 
 /* ================== INITIALISATION ================== */
 document.addEventListener("DOMContentLoaded", () => {
-  // Charger la liste des ouvriers
   chargerOuvriers();
 
-  // Mettre automatiquement la date du jour dans "Date de l’évaluation"
   const today = new Date().toISOString().slice(0, 10);
   if (inputDateEval && !inputDateEval.value) {
     inputDateEval.value = today;
